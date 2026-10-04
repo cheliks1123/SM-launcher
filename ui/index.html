@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minecraft Launcher</title>
+<style>
+:root{--bg:#0e0f13;--card:#16181d;--field:#1e2127;--line:#2a2e36;--txt:#e8eaee;--dim:#7d8490;--acc:#4ade80;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:56px 0 72px;background:var(--bg);color:var(--txt);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+.view{min-height:calc(100vh - 128px);display:grid;place-items:center;padding:24px}.view[hidden]{display:none}
+.card{width:min(420px,92vw);padding:32px;background:var(--card);border:1px solid var(--line);border-radius:20px}
+.shop{width:min(980px,94vw);place-self:start center}
+h1{margin:0 0 12px;font-size:20px;font-weight:600;display:flex;justify-content:space-between;align-items:baseline}
+h1 span{font-size:12px;font-weight:400;color:var(--dim)}
+label{display:block;margin:16px 0 6px;font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+input[type=text],select{width:100%;padding:12px 14px;font:inherit;color:var(--txt);background:var(--field);border:1px solid var(--line);border-radius:10px;outline:none;transition:border-color .15s}
+input[type=text]:focus,select:focus{border-color:var(--acc)}
+.chk{display:flex;align-items:center;gap:8px;margin:14px 0 0;font-size:13px;color:var(--dim);text-transform:none;letter-spacing:0}
+.chk input{accent-color:var(--acc)}
+.btn{padding:12px 20px;font:inherit;font-weight:600;color:#07140c;background:var(--acc);border:0;border-radius:10px;cursor:pointer;transition:filter .15s,opacity .15s}
+.btn:hover{filter:brightness(1.1)}.btn:disabled{opacity:.4;cursor:default}
+#play{width:100%;margin-top:26px;padding:14px;font-size:16px;border-radius:12px}
+#bar{height:3px;background:var(--line);border-radius:2px;margin-top:18px;overflow:hidden}
+#fill{height:100%;width:0;background:var(--acc);transition:width .2s}
+#text{display:block;margin-top:10px;font-size:12px;color:var(--dim);text-align:center;min-height:1.4em}
+.dd{position:relative}
+.dd>button{width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;font:inherit;color:var(--txt);background:var(--field);border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.dd ul{position:absolute;left:0;right:0;top:calc(100% + 6px);max-height:260px;overflow:auto;margin:0;padding:6px;list-style:none;background:var(--field);border:1px solid var(--line);border-radius:10px;z-index:5}
+.dd ul[hidden]{display:none}
+.dd li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer}.dd li:hover{background:var(--line)}
+.vs{display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:transparent;flex:none}.dot.on{background:var(--acc)}
+.bar2{display:flex;gap:10px;margin-bottom:8px}.bar2 input{flex:1}
+.sec{padding:12px 18px;font:inherit;color:var(--txt);background:var(--field);border:1px solid var(--line);border-radius:10px;cursor:pointer}.sec:hover{border-color:var(--acc)}
+.meta{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin:6px 2px 12px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;font-weight:500;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td img{width:48px;height:48px;border-radius:10px;background:var(--field);display:block;object-fit:cover}
+td p{margin:3px 0 0;font-size:13px;color:var(--dim);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+td.num{white-space:nowrap;color:var(--dim);font-size:13px}
+.ghost{padding:8px 14px;font:inherit;font-size:13px;color:var(--acc);background:transparent;border:1px solid var(--line);border-radius:8px;cursor:pointer;white-space:nowrap}.ghost:hover{border-color:var(--acc)}
+#more{display:block;margin:16px auto 0}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;z-index:10}.ov[hidden]{display:none}
+.dlg{width:min(480px,92vw);padding:24px;background:var(--card);border:1px solid var(--line);border-radius:18px}
+.dlg h2{margin:0;font-size:18px;display:flex;justify-content:space-between;gap:12px}
+.x{background:none;border:0;color:var(--dim);font-size:20px;cursor:pointer;line-height:1}
+.foot{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+#dInstall{width:100%}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;max-height:230px;overflow:auto}
+.chip{display:flex;gap:6px;align-items:center;margin:0;padding:6px 8px;background:var(--field);border:1px solid var(--line);border-radius:8px;font-size:13px;color:var(--txt);text-transform:none;letter-spacing:0;cursor:pointer}
+.chip input{accent-color:var(--acc)}
+nav{position:fixed;left:0;right:0;bottom:0;height:72px;display:flex;background:var(--card);border-top:1px solid var(--line)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:inherit;font-size:13px;color:var(--dim);background:none;border:0;border-top:2px solid transparent;cursor:pointer}
+.tab svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.tab.on{color:var(--acc);border-top-color:var(--acc)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:none}}
+@keyframes drop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes slide{to{background-position:-200% 0}}
+.view:not([hidden]){animation:rise .35s ease both}
+.ov:not([hidden]){animation:fade .2s ease both}
+.ov:not([hidden]) .dlg{animation:pop .25s cubic-bezier(.2,.9,.3,1.2) both}
+.dd ul:not([hidden]){animation:drop .15s ease both}
+tbody tr{animation:rise .35s ease both}
+.btn,.sec,.ghost,.tab,.dd li{transition:transform .12s,filter .15s,opacity .15s,border-color .15s,color .15s,background .15s}
+.btn:hover:not(:disabled){transform:translateY(-1px)}
+.btn:active:not(:disabled),.sec:active,.ghost:active{transform:scale(.96)}
+.tab svg{transition:transform .2s}.tab:hover svg,.tab.on svg{transform:translateY(-2px) scale(1.1)}
+#fill.busy{background:linear-gradient(90deg,var(--acc),#b9f6d0,var(--acc));background-size:200% 100%;animation:slide 1.2s linear infinite}
+.dot.on{box-shadow:0 0 6px var(--acc)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+header{position:fixed;top:0;left:0;right:0;height:56px;z-index:20;display:flex;align-items:center;padding:0 20px;background:var(--card);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em}
+.logo{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--acc);color:#07140c;font-size:12px;font-weight:800}
+#hs{flex:1;text-align:center;font-size:12px;color:var(--dim);padding:0 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acts{display:flex;gap:8px;position:relative}
+.ib{position:relative;width:38px;height:38px;display:grid;place-items:center;color:var(--txt);background:var(--field);border:1px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .15s,color .15s,transform .12s}
+.ib:hover{border-color:var(--acc);color:var(--acc)}.ib:active{transform:scale(.94)}
+.ib svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.badge{position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--acc);color:#07140c;font:700 10px/16px system-ui;text-align:center;font-style:normal;animation:pulse 1.6s infinite}
+.badge[hidden]{display:none}
+@keyframes pulse{50%{box-shadow:0 0 0 5px rgba(74,222,128,.18)}}
+.pop{position:absolute;top:48px;right:0;width:330px;max-height:380px;overflow:auto;padding:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.pop[hidden]{display:none}.pop:not([hidden]){animation:drop .18s ease both}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;font-weight:600}
+.ph .x{font-size:12px}
+.ni{padding:10px;border-radius:8px;font-size:13px}.ni:hover{background:var(--field)}
+.ni small{display:block;color:var(--dim);font-size:11px;margin-top:2px}
+#gbar{position:fixed;top:56px;left:0;right:0;height:2px;z-index:20}
+#fill2{height:100%;width:0;background:var(--acc);transition:width .2s}
+.car{transition:transform .2s}.dd.open .car{transform:rotate(180deg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-top:16px}
+.vc{padding:18px;background:var(--field);border:1px solid var(--line);border-radius:14px;cursor:pointer;animation:rise .35s ease both;transition:transform .15s,border-color .15s}
+.vc:hover{transform:translateY(-3px);border-color:var(--acc)}
+.vc b{font-size:16px}.vc small{color:var(--dim)}
+.vc .r{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px}
+.pbtn{padding:8px 14px;font-size:13px}
+.dz{margin:14px 0;padding:22px;text-align:center;color:var(--dim);border:2px dashed var(--line);border-radius:14px;transition:border-color .15s,background .15s,color .15s}
+.hot{border-color:var(--acc)!important;background:rgba(74,222,128,.06)}.dz.hot{color:var(--txt)}
+details{margin-top:18px}summary{cursor:pointer;color:var(--dim);font-size:13px}
+.files{margin-top:8px;max-height:260px;overflow:auto;white-space:pre;padding:10px 12px;background:var(--field);border-radius:10px;font:12px/1.7 ui-monospace,Consolas,monospace;color:var(--dim)}
+.empty{color:var(--dim);text-align:center;padding:30px 0}
+input[type=range]{width:100%;accent-color:var(--acc);margin:4px 0 0}
+</style>
+
+<header>
+  <div class="brand"><span class="logo">SM</span>SM launcher</div>
+  <div id="hs"></div>
+  <div class="acts">
+    <button class="ib" id="bell" title="Уведомления"><svg viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg><i class="badge" id="badge" hidden>0</i></button>
+    <button class="ib" id="folder" title="Папка с установленными модами"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button>
+    <button class="ib" id="gear" title="Настройки"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    <div class="pop" id="pop" hidden></div>
+  </div>
+</header>
+<div id="gbar"><div id="fill2"></div></div>
+
+<div class="view" id="v-play"><div class="card">
+  <h1>Minecraft <span>оффлайн</span></h1>
+  <label for="name">Ник</label>
+  <input id="name" type="text" maxlength="16" value="Player">
+  <label>Загрузчик</label><div id="loaderDD"></div>
+  <label>Версия</label><div id="verDD"></div>
+  <label class="chk"><input id="snap" type="checkbox"> Снапшоты и старые версии</label>
+  <label class="chk"><input id="inst" type="checkbox"> Только установленные</label>
+  <button class="btn" id="play">Играть</button>
+  <div id="bar"><div id="fill"></div></div>
+  <span id="text">Загрузка списка версий...</span>
+</div></div>
+
+<div class="view" id="v-vers" hidden><div class="card shop">
+  <h1>Мои версии <button class="btn" id="newInst">+ Создать</button></h1>
+  <div class="grid" id="vgrid"></div><div class="empty" id="vempty"></div>
+</div></div>
+
+<div class="view" id="v-inst" hidden><div class="card shop" id="iCard">
+  <h1><div class="vs"><button class="sec" id="iBack">←</button><b id="iName"></b></div><span id="iMeta"></span></h1>
+  <div class="bar2" style="flex-wrap:wrap">
+    <button class="btn pbtn" id="iPlay" style="padding:12px 22px;font-size:15px">Играть</button>
+    <button class="sec" id="iAdd">Добавить мод</button>
+    <button class="sec" id="iLib">Добавить существующий мод</button>
+    <button class="sec" id="iFolder">Папка</button>
+    <button class="sec" id="iDel">Удалить версию</button>
+  </div>
+  <div class="dz" id="iDz">Перетащи сюда мод или модпак (.jar, .zip, .mrpack): архив распакуется сам</div>
+  <label>Моды <span id="iCnt"></span></label>
+  <table><tbody id="iMods"></tbody></table>
+  <details><summary>Все файлы (<span id="fCnt">0</span>)</summary><div class="files" id="iFiles"></div></details>
+</div></div>
+
+<div class="view" id="v-shop" hidden><div class="card shop">
+  <h1>Магазин модов</h1>
+  <div class="bar2">
+    <input id="q" type="text" placeholder="Поиск модов...">
+    <button class="sec" id="filt">Фильтр</button>
+    <button class="btn" id="go">Найти</button>
+  </div>
+  <div class="meta"><span id="sinfo"></span><span>Modrinth</span></div>
+  <table><thead><tr><th></th><th>Мод</th><th>Загрузки</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+  <button class="ghost" id="more" hidden>Показать ещё</button>
+</div></div>
+
+<div class="view" id="v-mods" hidden><div class="card shop" id="mCard">
+  <h1>Мои моды <span>скачанные в лаунчере</span></h1>
+  <div class="bar2"><button class="btn" id="mAdd">Добавить файл</button><button class="sec" id="mFolder">Папка</button></div>
+  <div class="dz" id="mDz">Перетащи сюда .jar-файлы</div>
+  <table><tbody id="mRows"></tbody></table>
+</div></div>
+
+<div class="ov" id="dlgInstall" hidden><div class="dlg">
+  <h2><span id="dTitle"></span><button class="x" data-close>✕</button></h2>
+  <div id="dInfo" style="color:var(--dim);font-size:13px;margin-top:6px"></div>
+  <label>Загрузчик</label><div id="dLoader"></div>
+  <label>Версия игры</label><div id="dGame"></div>
+  <label>Версия мода</label><div id="dMod"></div>
+  <div class="foot"><button class="btn" id="dInstall" disabled>Установить</button></div>
+</div></div>
+
+<div class="ov" id="dlgFilter" hidden><div class="dlg">
+  <h2><span>Фильтр</span><button class="x" data-close>✕</button></h2>
+  <label>Загрузчики</label><div class="chips" id="fLoaders"></div>
+  <label>Версии игры</label><div class="chips" id="fVers"></div>
+  <div class="foot"><button class="sec" id="fReset">Сбросить</button><button class="btn" id="fApply">Применить</button></div>
+</div></div>
+
+<div class="ov" id="dlgCreate" hidden><div class="dlg">
+  <h2><span>Новая версия</span><button class="x" data-close>✕</button></h2>
+  <label for="cName">Название</label><input id="cName" type="text" maxlength="40" placeholder="Моя сборка">
+  <label>Загрузчик</label><div id="cLoader"></div>
+  <label>Версия Minecraft</label><div id="cVer"></div>
+  <div class="foot"><button class="btn" id="cOk" style="width:100%">Создать</button></div>
+</div></div>
+
+<div class="ov" id="dlgLib" hidden><div class="dlg">
+  <h2><span>Существующие моды</span><button class="x" data-close>✕</button></h2>
+  <div class="chips" id="lList" style="grid-template-columns:1fr;margin-top:14px"></div>
+  <div class="foot"><button class="btn" id="lOk" style="width:100%">Добавить в версию</button></div>
+</div></div>
+
+<div class="ov" id="dlgSettings" hidden><div class="dlg">
+  <h2><span>Настройки</span><button class="x" data-close>✕</button></h2>
+  <div id="sVer" style="color:var(--dim);font-size:13px;margin-top:4px"></div>
+  <label for="sRam">Память для игры: <b id="sRamV">2 ГБ</b></label>
+  <input type="range" id="sRam" min="1" max="16" step="1">
+  <label>Обновления</label>
+  <label class="chk" style="margin-top:0"><input type="checkbox" id="sAuto"> Проверять при запуске</label>
+  <input id="sRepo" type="text" placeholder="GitHub: имя/репозиторий" style="margin-top:10px">
+  <div class="vs" style="margin-top:12px;justify-content:space-between"><span id="sUpd" style="color:var(--dim);font-size:13px"></span><button class="sec" id="sCheck">Проверить</button></div>
+  <div class="foot"><button class="btn" id="sDo" style="width:100%" hidden>Обновить</button></div>
+</div></div>
+
+<input type="file" id="pick" multiple accept=".jar,.zip,.mrpack" hidden>
+
+<nav>
+  <button class="tab on" data-v="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Играть</button>
+  <button class="tab" data-v="vers"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>Версии</button>
+  <button class="tab" data-v="shop"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V7a3 3 0 0 1 6 0v1"/></svg>Магазин</button>
+  <button class="tab" data-v="mods"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>Мои моды</button>
+</nav>
+<script>
+const $ = s => document.querySelector(s);
+const LN = { '': 'Vanilla', fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge', quilt: 'Quilt' };
+const L3 = [{ v: '', t: 'Vanilla' }, { v: 'fabric', t: 'Fabric' }, { v: 'forge', t: 'Forge' }];
+const show = s => $(s).hidden = false, hide = s => $(s).hidden = true;
+const sz = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' МБ' : Math.max(1, Math.round(n / 1024)) + ' КБ';
+const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : n;
+const err = e => alert(e.message || e);
+async function api(url, body) {
+  const r = await fetch(url, body === undefined ? {} : { method: 'POST', body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || 'Ошибка');
+  return d;
+}
+
+function getSettings() {
+  try { const x = new XMLHttpRequest(); x.open('GET', '/api/settings', false); x.send(); return JSON.parse(x.responseText); }
+  catch { return {}; }
+}
+let S = getSettings(), saveT = null;
+function save() {
+  clearTimeout(saveT);
+  saveT = setTimeout(() => fetch('/api/settings', { method: 'POST', body: JSON.stringify({
+    name: $('#name').value.trim(), ver: curVer, loader: LD.value,
+    snap: $('#snap').checked, inst: $('#inst').checked, notes,
+    ram: S.ram, auto: S.auto, repo: S.repo }) }).catch(() => {}), 150);
+}
+
+const closeDD = () => document.querySelectorAll('.dd ul').forEach(u => { u.hidden = true; u.parentElement.classList.remove('open'); });
+class DD {
+  constructor(sel, onChange) {
+    this.el = $(sel); this.onChange = onChange; this.items = []; this.value = '';
+    this.el.classList.add('dd');
+    this.el.innerHTML = '<button type="button"><span class="vs"><span class="dot"></span><span class="t">—</span></span><span class="car">▾</span></button><ul hidden></ul>';
+    this.btn = this.el.firstChild; this.ul = this.el.lastChild;
+    this.btn.onclick = e => { e.stopPropagation(); const open = this.ul.hidden; closeDD(); this.ul.hidden = !open; this.el.classList.toggle('open', open); };
+  }
+  set(items, value, empty) {
+    this.items = items; this.ul.innerHTML = '';
+    items.forEach(it => {
+      const li = document.createElement('li');
+      if (it.dot !== undefined) { const d = document.createElement('span'); d.className = 'dot' + (it.dot ? ' on' : ''); li.append(d); }
+      li.append(it.t);
+      li.onclick = e => { e.stopPropagation(); this.pick(it.v); closeDD(); if (this.onChange) this.onChange(it.v); };
+      this.ul.append(li);
+    });
+    if (!items.length) { const li = document.createElement('li'); li.style.color = 'var(--dim)'; li.textContent = empty || 'Пусто'; this.ul.append(li); }
+    this.pick(items.some(i => i.v === value) ? value : (items[0] ? items[0].v : ''));
+  }
+  pick(v) {
+    this.value = v; const it = this.items.find(i => i.v === v);
+    this.btn.querySelector('.t').textContent = it ? it.t : '—';
+    const d = this.btn.querySelector('.dot');
+    d.style.display = it && it.dot !== undefined ? '' : 'none';
+    d.className = 'dot' + (it && it.dot ? ' on' : '');
+  }
+}
+
+let notes = S.notes || [], unread = 0;
+function drawNotes() {
+  $('#badge').hidden = !unread; $('#badge').textContent = unread;
+  const p = $('#pop'); p.innerHTML = '';
+  const h = document.createElement('div'); h.className = 'ph'; h.textContent = 'Уведомления';
+  const c = document.createElement('button'); c.className = 'x'; c.textContent = 'Очистить';
+  c.onclick = () => { notes = []; unread = 0; save(); drawNotes(); };
+  h.append(c); p.append(h);
+  if (!notes.length) { const e = document.createElement('div'); e.className = 'ni'; e.textContent = 'Пока ничего'; p.append(e); }
+  notes.forEach(n => {
+    const e = document.createElement('div'), s = document.createElement('small');
+    e.className = 'ni'; e.textContent = n.t; s.textContent = n.d; e.append(s); p.append(e);
+  });
+}
+function notify(text) {
+  notes.unshift({ t: text, d: new Date().toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' }) });
+  notes = notes.slice(0, 30); unread++;
+  save();
+  drawNotes();
+}
+$('#bell').onclick = e => { e.stopPropagation(); const o = $('#pop').hidden; $('#pop').hidden = !o; unread = 0; drawNotes(); };
+$('#pop').onclick = e => e.stopPropagation();
+document.addEventListener('click', () => { closeDD(); hide('#pop'); });
+$('#folder').onclick = () => api('/api/open', { what: 'library' }).catch(err);
+drawNotes();
+
+const VIEWS = ['play', 'vers', 'inst', 'shop', 'mods'];
+let curView = 'play', shopLoaded = false;
+function go(v) {
+  curView = v;
+  VIEWS.forEach(x => $('#v-' + x).hidden = x !== v);
+  const tab = v === 'inst' ? 'vers' : v;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.v === tab));
+  if (v === 'play' && LD.value === '__mine') load(true);
+  if (v === 'vers') loadVers();
+  if (v === 'mods') loadLib();
+  if (v === 'shop' && !shopLoaded) { shopLoaded = true; search(true); }
+}
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => go(b.dataset.v));
+document.querySelectorAll('.ov').forEach(o => o.onclick = e => { if (e.target === o || e.target.dataset.close !== undefined) o.hidden = true; });
+
+$('#name').value = S.name || 'Player';
+$('#snap').checked = !!S.snap; $('#inst').checked = !!S.inst;
+let versions = [], curVer = '', lastAct = null;
+const LD = new DD('#loaderDD', () => load());
+const VD = new DD('#verDD', v => { curVer = v; S.ver = v; updatePlay(); save(); });
+LD.set([...L3, { v: '__mine', t: 'Мои версии' }], S.loader || '');
+$('#name').oninput = save;
+
+function updatePlay() {
+  const v = versions.find(x => x.id === curVer);
+  $('#play').textContent = v && !v.installed ? 'Загрузить' : 'Играть';
+}
+function render() {
+  const all = $('#snap').checked, only = $('#inst').checked;
+  const list = versions.filter(v => (all || v.type === 'release') && (!only || v.installed));
+  VD.set(list.map(v => ({ v: v.id, t: v.label || v.id, dot: v.installed })), S.ver,
+    only ? 'Нет установленных версий' : LD.value === '__mine' ? 'Версий нет: создай на вкладке «Версии»' : 'Пусто');
+  curVer = VD.value; S.ver = curVer; updatePlay();
+}
+$('#snap').onchange = () => { render(); save(); };
+$('#inst').onchange = () => { render(); save(); };
+function load(quiet) {
+  S.loader = LD.value; save();
+  const mine = LD.value === '__mine';
+  if (!quiet) $('#text').textContent = 'Загрузка списка версий...';
+  api(mine ? '/api/instances' : '/api/versions?loader=' + LD.value).then(v => {
+    versions = mine ? v.map(m => ({ id: m.name, type: 'release', installed: m.installed, mc: m.mc, loader: m.loader,
+      label: `${m.name} · ${LN[m.loader] || 'Vanilla'} ${m.mc}` })) : v;
+    render(); if (!quiet) $('#text').textContent = 'Готов к запуску';
+  }).catch(() => { if (!quiet) $('#text').textContent = 'Не удалось получить список версий'; });
+}
+async function startPlay(ver, loader, installed, inst) {
+  const nick = $('#name').value.trim();
+  if (!nick || !ver) return alert('Введи ник на вкладке «Играть» и выбери версию');
+  lastAct = { ver, loader };
+  try { await api('/api/play', { name: nick, version: ver, loader, launch: installed, inst: inst || '' }); }
+  catch { alert('Не удалось начать: возможно, уже идёт установка'); }
+}
+$('#play').onclick = () => {
+  const v = versions.find(x => x.id === curVer);
+  if (!v) return alert('Выбери версию');
+  save();
+  startPlay(v.mc || curVer, v.loader !== undefined ? v.loader : LD.value, !!v.installed, v.mc ? v.id : '');
+};
+load();
+
+let prevBusy = false;
+setInterval(async () => {
+  try {
+    const s = await api('/api/status');
+    $('#text').textContent = s.text; $('#hs').textContent = s.busy ? s.text : '';
+    for (const f of ['#fill', '#fill2']) {
+      $(f).style.width = (f === '#fill2' && !s.busy ? 0 : s.progress) + '%';
+      $(f).classList.toggle('busy', s.busy);
+    }
+    $('#play').disabled = s.busy;
+    document.querySelectorAll('.pbtn').forEach(b => b.disabled = s.busy);
+    if (prevBusy && !s.busy) {
+      load(true);
+      if (s.text.startsWith('Версия загружена') && lastAct)
+        notify(`Загружена версия ${lastAct.ver}${lastAct.loader ? ' (' + LN[lastAct.loader] + ')' : ''}`);
+      else if (s.text.startsWith('Ошибка')) notify(s.text);
+      if (curView === 'vers') loadVers();
+      if (curView === 'inst') loadInst();
+    }
+    prevBusy = s.busy;
+  } catch {}
+}, 500);
+
+let shopOff = 0, filt = { loaders: [], versions: [] }, relList = null;
+async function search(reset) {
+  if (reset) { shopOff = 0; $('#rows').innerHTML = ''; }
+  $('#more').hidden = true; $('#sinfo').textContent = 'Поиск...';
+  try {
+    const d = await api('/api/mods?' + new URLSearchParams({ q: $('#q').value.trim(), offset: shopOff,
+      loaders: filt.loaders.join(','), versions: filt.versions.join(',') }));
+    d.hits.forEach(m => $('#rows').appendChild(row(m)));
+    shopOff += d.hits.length;
+    $('#sinfo').textContent = d.total_hits ? `Найдено: ${d.total_hits}` : 'Ничего не найдено';
+    $('#more').hidden = shopOff >= d.total_hits;
+  } catch { $('#sinfo').textContent = 'Не удалось загрузить моды'; }
+}
+const td = t => { const e = document.createElement('td'); e.textContent = t; return e; };
+function row(m) {
+  const tr = document.createElement('tr');
+  tr.style.animationDelay = ($('#rows').children.length % 20) * 30 + 'ms';
+  const t1 = document.createElement('td'), img = document.createElement('img');
+  img.src = m.icon_url || ''; img.onerror = () => img.style.visibility = 'hidden'; t1.append(img);
+  const t2 = document.createElement('td'), b = document.createElement('b'), p = document.createElement('p');
+  b.textContent = m.title; p.textContent = m.description; t2.append(b, p);
+  const t3 = td(fmt(m.downloads)); t3.className = 'num';
+  const t4 = document.createElement('td'), btn = document.createElement('button');
+  btn.className = 'ghost'; btn.textContent = 'Установить'; btn.onclick = () => openInstall(m);
+  t4.append(btn); tr.append(t1, t2, t3, t4); return tr;
+}
+$('#go').onclick = () => search(true);
+$('#q').onkeydown = e => { if (e.key === 'Enter') search(true); };
+$('#more').onclick = () => search(false);
+
+let dm = { vers: [], m: null };
+const cmpVer = (a, b) => {
+  const x = a.split('.').map(n => parseInt(n) || 0), y = b.split('.').map(n => parseInt(n) || 0);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (y[i] || 0) - (x[i] || 0); if (d) return d; }
+  return 0;
+};
+const DL = new DD('#dLoader', () => dLoader()), DG = new DD('#dGame', () => dGame()), DM = new DD('#dMod');
+async function openInstall(m) {
+  dm = { vers: [], m }; $('#dTitle').textContent = m.title;
+  DL.set([]); DG.set([]); DM.set([]); $('#dInstall').disabled = true;
+  $('#dInfo').textContent = 'Загрузка версий...'; show('#dlgInstall');
+  try { dm.vers = await api('/api/mod/versions?id=' + m.project_id); }
+  catch { $('#dInfo').textContent = 'Не удалось получить версии мода'; return; }
+  $('#dInfo').textContent = '';
+  DL.set([...new Set(dm.vers.flatMap(v => v.loaders))].map(l => ({ v: l, t: LN[l] || l })), S.loader);
+  dLoader(S.ver);
+}
+function dLoader(pick) {
+  const l = DL.value;
+  const gv = [...new Set(dm.vers.filter(v => v.loaders.includes(l)).flatMap(v => v.game_versions))].sort(cmpVer);
+  DG.set(gv.map(x => ({ v: x, t: x })), pick); dGame();
+}
+function dGame() {
+  const mv = dm.vers.filter(v => v.loaders.includes(DL.value) && v.game_versions.includes(DG.value));
+  DM.set(mv.map(v => ({ v: v.id, t: `${v.version_number} · ${v.version_type}` })));
+  $('#dInstall').disabled = !mv.length;
+}
+$('#dInstall').onclick = async () => {
+  const b = $('#dInstall'); b.disabled = true; b.textContent = 'Установка...';
+  try {
+    const d = await api('/api/mods/install', { version_id: DM.value });
+    notify(`Установлен мод «${dm.m.title}» (${d.file})`);
+    b.textContent = 'Установлено ✓';
+    setTimeout(() => { b.textContent = 'Установить'; b.disabled = false; }, 1500);
+  } catch (e) { b.textContent = 'Установить'; b.disabled = false; err(e); }
+};
+
+function chip(val, text, on, g) {
+  const l = document.createElement('label'), i = document.createElement('input');
+  l.className = 'chip'; i.type = 'checkbox'; i.value = val; i.checked = on; i.dataset.g = g;
+  l.append(i, text); return l;
+}
+$('#filt').onclick = async () => {
+  show('#dlgFilter'); $('#fLoaders').innerHTML = '';
+  Object.entries(LN).filter(([k]) => k).forEach(([k, n]) => $('#fLoaders').append(chip(k, n, filt.loaders.includes(k), 'l')));
+  if (!relList) {
+    try { relList = (await api('/api/versions?loader=')).filter(v => v.type === 'release').map(v => v.id); } catch { relList = []; }
+  }
+  $('#fVers').innerHTML = '';
+  relList.forEach(id => $('#fVers').append(chip(id, id, filt.versions.includes(id), 'v')));
+};
+const checked = g => [...document.querySelectorAll(`.ov input[data-g="${g}"]:checked`)].map(i => i.value);
+$('#fApply').onclick = () => {
+  filt = { loaders: checked('l'), versions: checked('v') }; hide('#dlgFilter');
+  const n = filt.loaders.length + filt.versions.length;
+  $('#filt').textContent = n ? `Фильтр (${n})` : 'Фильтр'; search(true);
+};
+$('#fReset').onclick = () => document.querySelectorAll('#dlgFilter input').forEach(i => i.checked = false);
+
+function fileRow(name, size, onDel) {
+  const tr = document.createElement('tr'), a = td(name), b = td(sz(size)), c = document.createElement('td'), x = document.createElement('button');
+  b.className = 'num'; x.className = 'ghost'; x.textContent = 'Удалить';
+  x.onclick = async () => { try { await onDel(); } catch (e) { err(e); } };
+  c.append(x); c.style.textAlign = 'right'; tr.append(a, b, c); return tr;
+}
+const emptyRow = (t, n) => { const tr = document.createElement('tr'), c = td(t); c.colSpan = n; c.style.color = 'var(--dim)'; tr.append(c); return tr; };
+let pickCtx = null;
+const pick = (target, name) => { pickCtx = { target, name }; $('#pick').click(); };
+$('#pick').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; if (pickCtx) upload(fs, pickCtx.target, pickCtx.name); };
+async function upload(files, target, name) {
+  const dz = target === 'library' ? $('#mDz') : $('#iDz'), old = dz.textContent;
+  for (const f of files) {
+    dz.textContent = `Импорт: ${f.name}...`;
+    try {
+      const r = await fetch('/api/upload?' + new URLSearchParams({ target, name: name || '', filename: f.name }), { method: 'POST', body: f });
+      const d = await r.json(); if (!r.ok) throw new Error(d.error);
+      notify(d.kind === 'pack' ? `Модпак «${f.name}» распакован: ${d.added} файлов` : `Добавлен мод: ${f.name}`);
+    } catch (e) { alert(`${f.name}: ${e.message}`); }
+  }
+  dz.textContent = old;
+  if (target === 'library') loadLib(); else loadInst();
+}
+function dropzone(sel, target, getName) {
+  const el = $(sel);
+  ['dragenter', 'dragover'].forEach(t => el.addEventListener(t, e => { e.preventDefault(); el.classList.add('hot'); }));
+  ['dragleave', 'drop'].forEach(t => el.addEventListener(t, e => { e.preventDefault(); el.classList.remove('hot'); }));
+  el.addEventListener('drop', e => upload([...e.dataTransfer.files], target, getName()));
+}
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => e.preventDefault());
+
+async function loadLib() {
+  const L = await api('/api/library'), tb = $('#mRows'); tb.innerHTML = '';
+  if (!L.length) tb.append(emptyRow('Пока пусто: установи моды в магазине или добавь файл', 3));
+  L.forEach(f => tb.append(fileRow(f.name, f.size, async () => { await api('/api/library/remove', { file: f.name }); loadLib(); })));
+}
+$('#mAdd').onclick = () => pick('library', '');
+$('#mFolder').onclick = () => api('/api/open', { what: 'library' }).catch(err);
+dropzone('#mCard', 'library', () => '');
+
+async function loadVers() {
+  const L = await api('/api/instances'), g = $('#vgrid'); g.innerHTML = '';
+  $('#vempty').textContent = L.length ? '' : 'Версий пока нет. Нажми «Создать».';
+  L.forEach((m, i) => {
+    const c = document.createElement('div'); c.className = 'vc'; c.style.animationDelay = i * 40 + 'ms';
+    const t = document.createElement('div'), dot = document.createElement('span'), b = document.createElement('b');
+    t.className = 'vs'; dot.className = 'dot' + (m.installed ? ' on' : ''); b.textContent = m.name; t.append(dot, b);
+    const r = document.createElement('div'), s = document.createElement('small'), pb = document.createElement('button');
+    r.className = 'r'; s.textContent = `${LN[m.loader] || 'Vanilla'} · ${m.mc} · модов: ${m.mods}`;
+    pb.className = 'btn pbtn'; pb.textContent = m.installed ? 'Играть' : 'Загрузить';
+    pb.onclick = e => { e.stopPropagation(); startPlay(m.mc, m.loader, m.installed, m.name); };
+    r.append(s, pb); c.append(t, r); c.onclick = () => openInst(m.name); g.append(c);
+  });
+}
+const CL = new DD('#cLoader', () => cVers()), CV = new DD('#cVer');
+async function cVers() {
+  CV.set([]);
+  try { CV.set((await api('/api/versions?loader=' + CL.value)).filter(x => x.type === 'release').map(x => ({ v: x.id, t: x.id, dot: x.installed }))); } catch {}
+}
+$('#newInst').onclick = () => { $('#cName').value = ''; CL.set(L3, ''); cVers(); show('#dlgCreate'); };
+$('#cOk').onclick = async () => {
+  try {
+    const d = await api('/api/instance/create', { name: $('#cName').value, loader: CL.value, mc: CV.value });
+    hide('#dlgCreate'); notify(`Создана версия «${d.name}»`); openInst(d.name);
+  } catch (e) { err(e); }
+};
+
+let cur = '', curMeta = null, curInstalled = false;
+async function openInst(name) { cur = name; go('inst'); await loadInst(); }
+async function loadInst() {
+  let d; try { d = await api('/api/instance?name=' + encodeURIComponent(cur)); } catch { return go('vers'); }
+  curMeta = d.meta; curInstalled = d.installed;
+  $('#iName').textContent = d.meta.name; $('#iMeta').textContent = `${LN[d.meta.loader] || 'Vanilla'} · ${d.meta.mc}`;
+  $('#iPlay').textContent = d.installed ? 'Играть' : 'Загрузить';
+  $('#iCnt').textContent = `(${d.mods.length})`;
+  const tb = $('#iMods'); tb.innerHTML = '';
+  if (!d.mods.length) tb.append(emptyRow('Модов нет. Перетащи сюда мод или модпак', 3));
+  d.mods.forEach(f => tb.append(fileRow(f.name, f.size, async () => { await api('/api/instance/remove', { name: cur, path: 'mods/' + f.name }); loadInst(); })));
+  $('#fCnt').textContent = d.total;
+  $('#iFiles').textContent = d.files.map(f => `${f.path}   (${sz(f.size)})`).join('\n');
+}
+$('#iBack').onclick = () => go('vers');
+$('#iPlay').onclick = () => startPlay(curMeta.mc, curMeta.loader, curInstalled, cur);
+$('#iAdd').onclick = () => pick('instance', cur);
+$('#iFolder').onclick = () => api('/api/open', { what: 'instance', name: cur }).catch(err);
+$('#iDel').onclick = async () => {
+  if (!confirm(`Удалить версию «${cur}» вместе со всеми её файлами?`)) return;
+  try { await api('/api/instance/delete', { name: cur }); notify(`Версия «${cur}» удалена`); go('vers'); } catch (e) { err(e); }
+};
+$('#iLib').onclick = async () => {
+  const L = await api('/api/library'), box = $('#lList'); box.innerHTML = '';
+  if (!L.length) box.textContent = 'В «Моих модах» пока пусто';
+  L.forEach(f => box.append(chip(f.name, f.name, false, 'm')));
+  show('#dlgLib');
+};
+$('#lOk').onclick = async () => {
+  const files = checked('m'); if (!files.length) return;
+  try {
+    const d = await api('/api/instance/add', { name: cur, files });
+    hide('#dlgLib'); notify(`В «${cur}» добавлено модов: ${d.added}`); loadInst();
+  } catch (e) { err(e); }
+};
+dropzone('#iCard', 'instance', () => cur);
+
+async function checkUpdate(manual) {
+  const box = $('#sUpd'), btn = $('#sDo');
+  if (manual) box.textContent = 'Проверка...';
+  try {
+    const u = await api('/api/update');
+    btn.hidden = !u.newer;
+    if (u.newer) { box.textContent = `Доступна версия ${u.latest}`; if (!manual) notify(`Доступно обновление ${u.latest}`); }
+    else if (manual) box.textContent = 'У тебя последняя версия';
+  } catch (e) { if (manual) box.textContent = e.message; }
+}
+$('#gear').onclick = async () => {
+  const ram = S.ram || 2;
+  $('#sRam').value = ram; $('#sRamV').textContent = ram + ' ГБ';
+  $('#sAuto').checked = S.auto !== false; $('#sRepo').value = S.repo || '';
+  try { $('#sVer').textContent = 'SM launcher ' + (await api('/api/about')).version; } catch {}
+  show('#dlgSettings');
+};
+$('#sRam').oninput = () => { S.ram = +$('#sRam').value; $('#sRamV').textContent = S.ram + ' ГБ'; save(); };
+$('#sAuto').onchange = () => { S.auto = $('#sAuto').checked; save(); };
+$('#sRepo').onchange = () => { S.repo = $('#sRepo').value.trim(); save(); };
+$('#sCheck').onclick = () => { S.repo = $('#sRepo').value.trim(); save(); setTimeout(() => checkUpdate(true), 400); };
+$('#sDo').onclick = async () => {
+  try {
+    const d = await api('/api/update/install', {});
+    hide('#dlgSettings'); notify(d.opened ? 'Открыта страница релиза' : 'Загрузка обновления...');
+  } catch (e) { err(e); }
+};
+if (S.auto !== false) setTimeout(() => checkUpdate(false), 1500);
+</script>
+</html>
