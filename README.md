@@ -1,4 +1,4 @@
-# SM Launcher
+# <img src="https://raw.githubusercontent.com/cheliks1123/SM-launcher/refs/heads/main/app.ico" alt="SM" width="40" height="40" align="center"> SM Launcher
 
 Лёгкий лаунчер для Minecraft: Java Edition со встроенным магазином модов и своими сборками. Установил, выбрал версию, играешь.
 
